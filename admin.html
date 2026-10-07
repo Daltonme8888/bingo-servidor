@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Bingo Virtual - Administrador</title>
+    <link rel="stylesheet" href="estilos.css">
+    
+    <style>
+        body { margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f6f7; }
+        
+        #pantalla-login { 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            height: 100vh; background-color: #2c3e50; 
+        }
+        .caja-login { 
+            background: white; padding: 40px; border-radius: 10px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3); text-align: center; width: 300px; 
+        }
+        .caja-login input { 
+            width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #bdc3c7; 
+            border-radius: 5px; box-sizing: border-box; font-size: 16px; 
+        }
+        .caja-login button { 
+            width: 100%; padding: 12px; background-color: #27ae60; color: white; 
+            border: none; border-radius: 5px; font-weight: bold; font-size: 16px; 
+            cursor: pointer; margin-top: 15px; 
+        }
+        .caja-login button:hover { background-color: #2ecc71; }
+
+        #pantalla-menu { 
+            display: none; height: 100vh; position: relative; background-color: #ecf0f1; 
+        }
+        .btn-cerrar-sesion { 
+            position: absolute; top: 20px; right: 20px; background-color: #e74c3c; 
+            color: white; padding: 10px 20px; border: none; border-radius: 5px; 
+            font-weight: bold; cursor: pointer; font-size: 14px;
+        }
+        .btn-cerrar-sesion:hover { background-color: #c0392b; }
+        
+        .contenedor-botones-medio { 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 20px; 
+        }
+        .btn-menu { 
+            background-color: #3498db; color: white; padding: 15px 30px; 
+            font-size: 1.2em; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; width: 300px; transition: 0.2s; 
+        }
+        .btn-menu:hover { background-color: #2980b9; transform: scale(1.05); }
+        .btn-juego { background-color: #27ae60; }
+        .btn-juego:hover { background-color: #219653; }
+        
+        #pantalla-admin { display: none; padding: 20px; position: relative; }
+        .btn-volver { 
+            position: absolute; top: 20px; left: 20px; background-color: #95a5a6; 
+            color: white; padding: 10px 20px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; 
+        }
+        .btn-volver:hover { background-color: #7f8c8d; }
+
+        #pantalla-accesos { display: none; padding: 20px; position: relative; min-height: 100vh; }
+        .btn-agregar-jugador {
+            background: #27ae60; color: white; border: none; padding: 15px 30px; 
+            font-size: 1.2em; border-radius: 8px; cursor: pointer; font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.2s;
+        }
+        .btn-agregar-jugador:hover { background: #219653; transform: translateY(-2px); }
+        
+        .cuadro-jugador {
+            background: white; padding: 20px; border-radius: 8px; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); text-align: center; 
+            min-width: 120px; border-top: 5px solid #3498db;
+        }
+
+        #pantalla-nuevo-pase { 
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            min-height: 100vh; background-color: #2c3e50;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="pantalla-login">
+        <div class="caja-login">
+            <h2 style="color: #2c3e50; margin-top: 0;">Acceso Seguro</h2>
+            <input type="text" id="input-usuario" placeholder="Usuario">
+            <input type="password" id="input-clave" placeholder="Contraseña">
+            <button onclick="verificarLogin()">Ingresar</button>
+            <p id="mensaje-error" style="color: #e74c3c; display: none; font-weight: bold; font-size: 0.9em; margin-top: 15px;">❌ Usuario o contraseña incorrectos</p>
+        </div>
+    </div>
+
+    <div id="pantalla-menu">
+        <button class="btn-cerrar-sesion" onclick="cerrarSesion()">Cerrar Sesión</button>
+        <div class="contenedor-botones-medio">
+            <h1 style="color: #2c3e50; margin-bottom: 20px;">Panel de Administración</h1>
+            <button class="btn-menu" onclick="irGenerarAccesos()">Generar Accesos</button>
+            <button class="btn-menu btn-juego" onclick="comenzarJuego()">Comenzar Juego</button>
+        </div>
+    </div>
+
+    <div id="pantalla-admin">
+        <button class="btn-volver" onclick="volverAlMenuDesde('pantalla-admin')">⬅ Volver al Menú</button>
+        <button class="btn-cerrar-sesion" onclick="cerrarSesion()">Cerrar Sesión</button>
+        <h1 style="text-align: center; margin-top: 50px;">Control del Bingo</h1>
+        <!-- NUEVO: SELECTOR DE MODO DE JUEGO -->
+<div style="text-align: center; margin-bottom: 20px;">
+    <label for="selector-modo" style="font-weight: bold; font-size: 1.2em; color: #2c3e50;">Modo de Juego:</label>
+    <select id="selector-modo" style="padding: 10px; font-size: 1.1em; border-radius: 5px; border: 2px solid #bdc3c7; margin-left: 10px;">
+        <option value="quina">Quina (Líneas normales)</option>
+        <option value="quina_loca">Quina Loca (Centro bloqueado)</option>
+        <option value="tabla_completa">Tabla Completa (Cartón lleno)</option>
+    </select>
+    <button onclick="cambiarModoJuego()" style="background: #8e44ad; color: white; border: none; padding: 10px 20px; font-size: 1.1em; border-radius: 5px; cursor: pointer; font-weight: bold; margin-left: 10px; transition: 0.2s;">Aplicar Modo</button>
+</div>
+       <div class="controles-admin" style="display: flex; justify-content: center; align-items: flex-start; margin-bottom: 20px; gap: 15px; flex-wrap: wrap;">
+            
+            <!-- NUEVA: TÓMBOLA AUTOMÁTICA -->
+            <div style="display: flex; flex-direction: column; gap: 10px; padding-right: 15px; border-right: 2px solid #bdc3c7;">
+                <button id="btn-toggle-tombola" class="btn-control" style="background: #f39c12; color: white;">Tómbola: APAGADA</button>
+                <button id="btn-girar-tombola" class="btn-control" style="background: #8e44ad; color: white; display: none; font-size: 1.1em; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.2);">🎲 Extraer Bola</button>
+            </div>
+
+            <!-- Botones existentes -->
+            <button id="btn-editar" class="btn-control btn-editar">Modo Edición: APAGADO</button>
+            <button id="btn-reset" class="btn-control btn-reset">Reiniciar Partida</button>
+        </div>
+        
+        <div id="tablero-admin" class="tablero-admin" style="margin: 0 auto;"></div>
+
+        <!-- NUEVO: VISOR DE LA ÚLTIMA BOLA EXTRAÍDA -->
+        <div style="text-align: center; margin-top: 30px; padding-bottom: 50px;">
+            <h3 id="titulo-ultima-bola" style="color: #2c3e50; margin-bottom: 10px; display: none;">Última Bola Extraída:</h3>
+            <div id="display-tombola" style="font-size: 6em; font-weight: 900; color: #e74c3c; text-shadow: 2px 2px 5px rgba(0,0,0,0.2); transition: transform 0.2s ease-in-out;"></div>
+        </div>
+    </div>
+
+    <div id="pantalla-accesos">
+        <button class="btn-volver" onclick="volverAlMenuDesde('pantalla-accesos')">⬅ Volver al Menú</button>
+        <button class="btn-cerrar-sesion" onclick="cerrarSesion()">Cerrar Sesión</button>
+        
+        <h1 style="text-align: center; margin-top: 50px; color: #2c3e50;">Gestión de Jugadores</h1>
+        
+        <!-- BOTONES DE GESTIÓN -->
+        <div style="text-align: center; margin-bottom: 30px; display: flex; justify-content: center; gap: 20px;">
+            <button class="btn-agregar-jugador" onclick="crearNuevoJugador()">➕ Agregar Jugador</button>
+            <button class="btn-agregar-jugador" style="background: #e74c3c;" onclick="borrarTodosLosPases()">🗑️ Borrar Todos</button>
+        </div>
+
+        <div id="lista-jugadores" style="display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; max-width: 900px; margin: 0 auto;">
+            <!-- Cuadros dinámicos -->
+        </div>
+    </div>
+
+    <div id="pantalla-nuevo-pase">
+        <div style="background: white; padding: 40px; border-radius: 10px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
+            <h2 style="margin-top: 0; color: #2c3e50;">Entrada Generada</h2>
+            <img id="imagen-qr" src="" alt="Código QR" style="width: 250px; height: 250px; border: 2px solid #ecf0f1; border-radius: 10px; margin: 20px 0;">
+            <h3 style="margin: 0; color: #7f8c8d;">Código Manual:</h3>
+            <p id="texto-codigo" style="font-size: 2.5em; font-weight: bold; margin: 10px 0; color: #e74c3c; letter-spacing: 2px;">XXXXXX</p>
+            <button onclick="volverAListaJugadores()" style="background: #3498db; color: white; border: none; padding: 12px 25px; font-size: 1.1em; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 20px;">⬅ Atrás</button>
+        </div>
+    </div>
+
+    <script>
+        let contadorJugadores = 0;
+
+
+        // --- NUEVO: Soporte para la tecla Enter en el login ---
+document.getElementById('input-usuario').addEventListener('keypress', function(event) {
+    if (event.key === 'Enter') verificarLogin();
+});
+
+document.getElementById('input-clave').addEventListener('keypress', function(event) {
+    if (event.key === 'Enter') verificarLogin();
+});
+
+        // --- NUEVA LÓGICA DE SESIÓN SEGURA ---
+        function verificarLogin() {
+            const usuario = document.getElementById('input-usuario').value;
+            const clave = document.getElementById('input-clave').value;
+            if (usuario === "Usuario1" && clave === "Usuario2") {
+                // Guardamos la sesión temporalmente en el navegador
+                sessionStorage.setItem("adminLogueado", "true");
+                
+                document.getElementById('pantalla-login').style.display = "none";
+                document.getElementById('pantalla-menu').style.display = "block";
+                document.getElementById('mensaje-error').style.display = "none";
+            } else {
+                document.getElementById('mensaje-error').style.display = "block";
+            }
+        }
+
+        function cerrarSesion() {
+            // Destruimos la sesión por completo
+            sessionStorage.removeItem("adminLogueado");
+            
+            document.getElementById('pantalla-menu').style.display = "none";
+            document.getElementById('pantalla-admin').style.display = "none";
+            document.getElementById('pantalla-accesos').style.display = "none";
+            document.getElementById('pantalla-nuevo-pase').style.display = "none";
+            
+            document.getElementById('input-usuario').value = "";
+            document.getElementById('input-clave').value = "";
+            document.getElementById('pantalla-login').style.display = "flex";
+        }
+
+        function volverAlMenuDesde(pantallaActual) {
+            document.getElementById(pantallaActual).style.display = "none";
+            document.getElementById('pantalla-menu').style.display = "block";
+            sessionStorage.setItem("pantallaActual", "pantalla-menu"); // Guarda que volvió al menú
+        }
+
+        function irGenerarAccesos() {
+            document.getElementById('pantalla-menu').style.display = "none";
+            document.getElementById('pantalla-accesos').style.display = "block";
+            sessionStorage.setItem("pantallaActual", "pantalla-accesos"); // Guarda que entró a pases
+        }
+
+        function comenzarJuego() {
+            document.getElementById('pantalla-menu').style.display = "none";
+            document.getElementById('pantalla-admin').style.display = "block";
+            sessionStorage.setItem("pantallaActual", "pantalla-admin"); // Guarda que entró al tablero
+        }
+
+        // --- RECUPERAR DATOS Y PANTALLA AL RECARGAR (F5) ---
+        window.onload = async function() {
+            if (sessionStorage.getItem("adminLogueado") === "true") {
+                document.getElementById('pantalla-login').style.display = "none";
+                
+                const pantallaGuardada = sessionStorage.getItem("pantallaActual") || "pantalla-menu";
+                
+                document.getElementById('pantalla-menu').style.display = "none";
+                document.getElementById('pantalla-admin').style.display = "none";
+                document.getElementById('pantalla-accesos').style.display = "none";
+                document.getElementById('pantalla-nuevo-pase').style.display = "none";
+                
+                document.getElementById(pantallaGuardada).style.display = "block";
+                
+                try {
+                    // 1. Recuperar el estado de las bolas sacadas
+                    const respuestaEstado = await fetch('https://bingo-servidor-djow.onrender.com/estado');
+                    const datosEstado = await respuestaEstado.json();
+                    
+                    document.getElementById('selector-modo').value = datosEstado.modo;
+                    
+                    // Usamos un pequeño retraso (100ms) para garantizar que los botones ya existen antes de pintarlos
+                    setTimeout(() => {
+                        const botonesBola = document.querySelectorAll('.btn-bola');
+                        datosEstado.bolas.forEach(bolaSacada => {
+                            botonesBola.forEach(btn => {
+                                if(btn.textContent === bolaSacada) {
+                                    btn.classList.add('sacada');
+                                }
+                            });
+                        });
+
+                        // Recuperar la bola gigante de la Tómbola
+                        if (datosEstado.bolas.length > 0) {
+                            document.getElementById('titulo-ultima-bola').style.display = "block";
+                            document.getElementById('display-tombola').textContent = datosEstado.bolas[datosEstado.bolas.length - 1];
+                        }
+                    }, 100);
+
+                    // 2. Recuperar la lista de jugadores generados
+                    const respuestaPases = await fetch('https://bingo-servidor-djow.onrender.com/pases');
+                    const datosPases = await respuestaPases.json();
+                    
+                    const lista = document.getElementById('lista-jugadores');
+                    if (lista) {
+                        lista.innerHTML = ''; // Limpiamos la pantalla por si acaso
+                        contadorJugadores = 0; // Reiniciamos el conteo
+                        
+                        // Volvemos a dibujar cada cuadro de jugador
+                        datosPases.pases.forEach(token => {
+                            contadorJugadores++;
+                            const cuadro = document.createElement('div');
+                            cuadro.className = 'cuadro-jugador';
+                            cuadro.innerHTML = `<h3 style="margin: 0; color: #2c3e50;">Jugador ${contadorJugadores}</h3>
+                                                <p style="margin: 10px 0 0 0; font-weight: bold; color: #e74c3c;">${token}</p>`;
+                            lista.appendChild(cuadro);
+                        });
+                    }
+
+                } catch (error) {
+                    console.error("No se pudo cargar el estado previo del servidor");
+                }
+            }
+        };
+
+        async function cambiarModoJuego() {
+            const nuevoModo = document.getElementById('selector-modo').value;
+            const textoModo = document.getElementById('selector-modo').options[document.getElementById('selector-modo').selectedIndex].text;
+            
+            // Agregamos una confirmación para evitar toques accidentales
+            if(confirm(`¿Estás seguro de cambiar el modo a "${textoModo}"? Esto reiniciará la partida actual para todos.`)) {
+                try {
+                    // 1. Cambiamos el modo de juego en el servidor
+                    await fetch(`https://bingo-servidor-djow.onrender.com/cambiar-modo/${nuevoModo}`);
+                    
+                    // 2. Inmediatamente después, disparamos el reinicio de las bolas
+                    await fetch('https://bingo-servidor-djow.onrender.com/reset');
+                    
+                    // 3. Limpiamos visualmente los botones azules de tu panel de administrador
+                    document.querySelectorAll('.btn-bola').forEach(btn => {
+                        btn.classList.remove('sacada');
+                    });
+                    
+                } catch (error) {
+                    alert("Hubo un error al cambiar el modo.");
+                }
+            }
+        }
+
+        async function crearNuevoJugador() {
+            try {
+                const respuesta = await fetch('https://bingo-servidor-djow.onrender.com/crear-pase');
+                const datos = await respuesta.json();
+                const token = datos.token;
+
+                contadorJugadores++;
+
+                const lista = document.getElementById('lista-jugadores');
+                const cuadro = document.createElement('div');
+                cuadro.className = 'cuadro-jugador';
+                cuadro.innerHTML = `<h3 style="margin: 0; color: #2c3e50;">Jugador ${contadorJugadores}</h3>
+                                    <p style="margin: 10px 0 0 0; font-weight: bold; color: #e74c3c;">${token}</p>`;
+                lista.appendChild(cuadro);
+
+                document.getElementById('imagen-qr').src = `https://bingo-servidor-djow.onrender.com/ver-qr/${token}`;
+                document.getElementById('texto-codigo').textContent = token;
+
+                document.getElementById('pantalla-accesos').style.display = "none";
+                document.getElementById('pantalla-nuevo-pase').style.display = "flex";
+            } catch (error) {
+                console.error("Error generando pase:", error);
+                alert("Hubo un error de conexión con Python.");
+            }
+        }
+
+        // --- NUEVA FUNCIÓN PARA BORRAR TODOS LOS JUGADORES ---
+        async function borrarTodosLosPases() {
+            if(confirm("¿Seguro que quieres borrar todos los jugadores? Sus códigos ya no servirán.")) {
+                try {
+                    await fetch('https://bingo-servidor-djow.onrender.com/borrar-pases');
+                    document.getElementById('lista-jugadores').innerHTML = ''; // Limpiamos la pantalla
+                    contadorJugadores = 0; // Reiniciamos el conteo
+                } catch (error) {
+                    console.error("Error borrando pases:", error);
+                }
+            }
+        }
+
+        function volverAListaJugadores() {
+            document.getElementById('pantalla-nuevo-pase').style.display = "none";
+            document.getElementById('pantalla-accesos').style.display = "block";
+        }
+
+       // --- LÓGICA DEL JUEGO BINGO ---
+        const tableroAdmin = document.getElementById('tablero-admin');
+        const letras = ['B', 'I', 'N', 'G', 'O'];
+        let modoEdicion = false;
+
+        document.getElementById('btn-editar').onclick = function() {
+            modoEdicion = !modoEdicion;
+            this.textContent = modoEdicion ? "Modo Edición: ENCENDIDO" : "Modo Edición: APAGADO";
+            this.classList.toggle('activo');
+        };
+
+        document.getElementById('btn-reset').onclick = async function() {
+            if(confirm("¿Seguro que quieres reiniciar la partida? Esto solo limpiará las bolas, los jugadores mantendrán sus cartones.")) {
+                await fetch('https://bingo-servidor-djow.onrender.com/reset');
+                
+                document.querySelectorAll('.btn-bola').forEach(btn => {
+                    btn.classList.remove('sacada');
+                });
+
+                // Limpiar el visor de la bola gigante
+                document.getElementById('titulo-ultima-bola').style.display = "none";
+                document.getElementById('display-tombola').textContent = "";
+            }
+        };
+
+        for (let i = 0; i < 5; i++) {
+            const letra = letras[i];
+            for (let j = 1; j <= 15; j++) {
+                const bola = letra + ((i * 15) + j); 
+                const boton = document.createElement('button');
+                boton.className = 'btn-bola';
+                boton.textContent = bola;
+
+                boton.onclick = async function() {
+                    if (modoEdicion) {
+                        if (!boton.classList.contains('sacada')) return; 
+                        await fetch(`https://bingo-servidor-djow.onrender.com/deshacer-bola/${bola}`);
+                        boton.classList.remove('sacada');
+                        
+                        // Si deshace una bola, limpiamos la pantalla gigante por precaución
+                        document.getElementById('titulo-ultima-bola').style.display = "none";
+                        document.getElementById('display-tombola').textContent = "";
+                    } else {
+                        if (boton.classList.contains('sacada')) return;
+                        await fetch(`https://bingo-servidor-djow.onrender.com/sacar-bola/${bola}`);
+                        boton.classList.add('sacada');
+
+                        // Mostrar número en tamaño gigante abajo
+                        document.getElementById('titulo-ultima-bola').style.display = "block";
+                        document.getElementById('display-tombola').textContent = bola;
+                        document.getElementById('display-tombola').style.transform = "scale(1.3)";
+                        setTimeout(() => { document.getElementById('display-tombola').style.transform = "scale(1)"; }, 200);
+                    }
+                };
+                tableroAdmin.appendChild(boton);
+            }
+        }
+
+        // --- NUEVA LÓGICA DE TÓMBOLA AUTOMÁTICA ---
+        let tombolaActiva = false;
+        const btnToggleTombola = document.getElementById('btn-toggle-tombola');
+        const btnGirarTombola = document.getElementById('btn-girar-tombola');
+
+        btnToggleTombola.onclick = function() {
+            tombolaActiva = !tombolaActiva;
+            if (tombolaActiva) {
+                btnToggleTombola.textContent = "Tómbola: ENCENDIDA";
+                btnToggleTombola.style.background = "#27ae60"; 
+                btnGirarTombola.style.display = "block";
+            } else {
+                btnToggleTombola.textContent = "Tómbola: APAGADA";
+                btnToggleTombola.style.background = "#f39c12"; 
+                btnGirarTombola.style.display = "none";
+            }
+        };
+
+        btnGirarTombola.onclick = function() {
+            if (modoEdicion) {
+                alert("Debes apagar el Modo Edición para extraer bolas de forma automática.");
+                return;
+            }
+
+            // 1. Encontrar todas las bolas que NO han sido sacadas todavía
+            const bolasDisponibles = Array.from(document.querySelectorAll('.btn-bola')).filter(btn => !btn.classList.contains('sacada'));
+
+            if (bolasDisponibles.length === 0) {
+                alert("¡El tablero está lleno, ya salieron todas las bolas!");
+                return;
+            }
+
+            // 2. Elegir una al azar (como una máquina real)
+            const indiceAleatorio = Math.floor(Math.random() * bolasDisponibles.length);
+            const botonGanador = bolasDisponibles[indiceAleatorio];
+            
+            // 3. Forzar el "clic" en el botón para que se pinte de azul y envíe el aviso a los jugadores
+            botonGanador.click(); 
+        };
+
+    </script>
+</body>
+</html>
