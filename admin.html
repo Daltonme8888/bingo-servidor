@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <title>Bingo Virtual - Administrador</title>
     <link rel="stylesheet" href="estilos.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <style>
         body { margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f6f7; }
@@ -160,26 +162,14 @@
     </div>
 
     <script>
+
         let contadorJugadores = 0;
 
-
-        // --- NUEVO: Soporte para la tecla Enter en el login ---
-document.getElementById('input-usuario').addEventListener('keypress', function(event) {
-    if (event.key === 'Enter') verificarLogin();
-});
-
-document.getElementById('input-clave').addEventListener('keypress', function(event) {
-    if (event.key === 'Enter') verificarLogin();
-});
-
-        // --- NUEVA LÓGICA DE SESIÓN SEGURA ---
         function verificarLogin() {
             const usuario = document.getElementById('input-usuario').value;
             const clave = document.getElementById('input-clave').value;
             if (usuario === "Usuario1" && clave === "Usuario2") {
-                // Guardamos la sesión temporalmente en el navegador
                 sessionStorage.setItem("adminLogueado", "true");
-                
                 document.getElementById('pantalla-login').style.display = "none";
                 document.getElementById('pantalla-menu').style.display = "block";
                 document.getElementById('mensaje-error').style.display = "none";
@@ -188,15 +178,21 @@ document.getElementById('input-clave').addEventListener('keypress', function(eve
             }
         }
 
+        // Soporte para la tecla Enter en el login
+        document.getElementById('input-usuario').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') verificarLogin();
+        });
+
+        document.getElementById('input-clave').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') verificarLogin();
+        });
+
         function cerrarSesion() {
-            // Destruimos la sesión por completo
             sessionStorage.removeItem("adminLogueado");
-            
             document.getElementById('pantalla-menu').style.display = "none";
             document.getElementById('pantalla-admin').style.display = "none";
             document.getElementById('pantalla-accesos').style.display = "none";
             document.getElementById('pantalla-nuevo-pase').style.display = "none";
-            
             document.getElementById('input-usuario').value = "";
             document.getElementById('input-clave').value = "";
             document.getElementById('pantalla-login').style.display = "flex";
@@ -205,43 +201,37 @@ document.getElementById('input-clave').addEventListener('keypress', function(eve
         function volverAlMenuDesde(pantallaActual) {
             document.getElementById(pantallaActual).style.display = "none";
             document.getElementById('pantalla-menu').style.display = "block";
-            sessionStorage.setItem("pantallaActual", "pantalla-menu"); // Guarda que volvió al menú
+            sessionStorage.setItem("pantallaActual", "pantalla-menu"); 
         }
 
         function irGenerarAccesos() {
             document.getElementById('pantalla-menu').style.display = "none";
             document.getElementById('pantalla-accesos').style.display = "block";
-            sessionStorage.setItem("pantallaActual", "pantalla-accesos"); // Guarda que entró a pases
+            sessionStorage.setItem("pantallaActual", "pantalla-accesos"); 
         }
 
         function comenzarJuego() {
             document.getElementById('pantalla-menu').style.display = "none";
             document.getElementById('pantalla-admin').style.display = "block";
-            sessionStorage.setItem("pantallaActual", "pantalla-admin"); // Guarda que entró al tablero
+            sessionStorage.setItem("pantallaActual", "pantalla-admin"); 
         }
 
-        // --- RECUPERAR DATOS Y PANTALLA AL RECARGAR (F5) ---
         window.onload = async function() {
             if (sessionStorage.getItem("adminLogueado") === "true") {
                 document.getElementById('pantalla-login').style.display = "none";
-                
                 const pantallaGuardada = sessionStorage.getItem("pantallaActual") || "pantalla-menu";
-                
                 document.getElementById('pantalla-menu').style.display = "none";
                 document.getElementById('pantalla-admin').style.display = "none";
                 document.getElementById('pantalla-accesos').style.display = "none";
                 document.getElementById('pantalla-nuevo-pase').style.display = "none";
-                
                 document.getElementById(pantallaGuardada).style.display = "block";
                 
                 try {
-                    // 1. Recuperar el estado de las bolas sacadas
                     const respuestaEstado = await fetch('https://bingo-servidor-djow.onrender.com/estado');
                     const datosEstado = await respuestaEstado.json();
                     
                     document.getElementById('selector-modo').value = datosEstado.modo;
                     
-                    // Usamos un pequeño retraso (100ms) para garantizar que los botones ya existen antes de pintarlos
                     setTimeout(() => {
                         const botonesBola = document.querySelectorAll('.btn-bola');
                         datosEstado.bolas.forEach(bolaSacada => {
@@ -251,24 +241,19 @@ document.getElementById('input-clave').addEventListener('keypress', function(eve
                                 }
                             });
                         });
-
-                        // Recuperar la bola gigante de la Tómbola
                         if (datosEstado.bolas.length > 0) {
                             document.getElementById('titulo-ultima-bola').style.display = "block";
                             document.getElementById('display-tombola').textContent = datosEstado.bolas[datosEstado.bolas.length - 1];
                         }
                     }, 100);
 
-                    // 2. Recuperar la lista de jugadores generados
                     const respuestaPases = await fetch('https://bingo-servidor-djow.onrender.com/pases');
                     const datosPases = await respuestaPases.json();
                     
                     const lista = document.getElementById('lista-jugadores');
                     if (lista) {
-                        lista.innerHTML = ''; // Limpiamos la pantalla por si acaso
-                        contadorJugadores = 0; // Reiniciamos el conteo
-                        
-                        // Volvemos a dibujar cada cuadro de jugador
+                        lista.innerHTML = ''; 
+                        contadorJugadores = 0; 
                         datosPases.pases.forEach(token => {
                             contadorJugadores++;
                             const cuadro = document.createElement('div');
@@ -278,35 +263,38 @@ document.getElementById('input-clave').addEventListener('keypress', function(eve
                             lista.appendChild(cuadro);
                         });
                     }
-
                 } catch (error) {
                     console.error("No se pudo cargar el estado previo del servidor");
                 }
             }
         };
 
+        // --- ACTUALIZADO: CAMBIAR MODO CON SWEETALERT ---
         async function cambiarModoJuego() {
             const nuevoModo = document.getElementById('selector-modo').value;
             const textoModo = document.getElementById('selector-modo').options[document.getElementById('selector-modo').selectedIndex].text;
             
-            // Agregamos una confirmación para evitar toques accidentales
-            if(confirm(`¿Estás seguro de cambiar el modo a "${textoModo}"? Esto reiniciará la partida actual para todos.`)) {
-                try {
-                    // 1. Cambiamos el modo de juego en el servidor
-                    await fetch(`https://bingo-servidor-djow.onrender.com/cambiar-modo/${nuevoModo}`);
-                    
-                    // 2. Inmediatamente después, disparamos el reinicio de las bolas
-                    await fetch('https://bingo-servidor-djow.onrender.com/reset');
-                    
-                    // 3. Limpiamos visualmente los botones azules de tu panel de administrador
-                    document.querySelectorAll('.btn-bola').forEach(btn => {
-                        btn.classList.remove('sacada');
-                    });
-                    
-                } catch (error) {
-                    alert("Hubo un error al cambiar el modo.");
+            Swal.fire({
+                title: '¿Cambiar reglas?',
+                text: `¿Estás seguro de cambiar el modo a "${textoModo}"? Esto reiniciará la partida actual para todos.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#8e44ad',
+                cancelButtonColor: '#7f8c8d',
+                confirmButtonText: 'Sí, cambiar',
+                cancelButtonText: 'Cancelar'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        await fetch(`https://bingo-servidor-djow.onrender.com/cambiar-modo/${nuevoModo}`);
+                        await fetch('https://bingo-servidor-djow.onrender.com/reset');
+                        document.querySelectorAll('.btn-bola').forEach(btn => btn.classList.remove('sacada'));
+                        Swal.fire('¡Modo Aplicado!', 'El juego se ha reiniciado con las nuevas reglas.', 'success');
+                    } catch (error) {
+                        Swal.fire('Error', 'Hubo un problema al cambiar el modo.', 'error');
+                    }
                 }
-            }
+            });
         }
 
         async function crearNuevoJugador() {
@@ -316,7 +304,6 @@ document.getElementById('input-clave').addEventListener('keypress', function(eve
                 const token = datos.token;
 
                 contadorJugadores++;
-
                 const lista = document.getElementById('lista-jugadores');
                 const cuadro = document.createElement('div');
                 cuadro.className = 'cuadro-jugador';
@@ -330,22 +317,33 @@ document.getElementById('input-clave').addEventListener('keypress', function(eve
                 document.getElementById('pantalla-accesos').style.display = "none";
                 document.getElementById('pantalla-nuevo-pase').style.display = "flex";
             } catch (error) {
-                console.error("Error generando pase:", error);
-                alert("Hubo un error de conexión con Python.");
+                Swal.fire('Error de Conexión', 'Hubo un error al generar el pase en el servidor.', 'error');
             }
         }
 
-        // --- NUEVA FUNCIÓN PARA BORRAR TODOS LOS JUGADORES ---
+        // --- ACTUALIZADO: BORRAR JUGADORES CON SWEETALERT ---
         async function borrarTodosLosPases() {
-            if(confirm("¿Seguro que quieres borrar todos los jugadores? Sus códigos ya no servirán.")) {
-                try {
-                    await fetch('https://bingo-servidor-djow.onrender.com/borrar-pases');
-                    document.getElementById('lista-jugadores').innerHTML = ''; // Limpiamos la pantalla
-                    contadorJugadores = 0; // Reiniciamos el conteo
-                } catch (error) {
-                    console.error("Error borrando pases:", error);
+            Swal.fire({
+                title: '¿Borrar todos los jugadores?',
+                text: "Sus códigos ya no servirán y serán expulsados del juego.",
+                icon: 'error',
+                showCancelButton: true,
+                confirmButtonColor: '#e74c3c',
+                cancelButtonColor: '#7f8c8d',
+                confirmButtonText: 'Sí, borrarlos',
+                cancelButtonText: 'Cancelar'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        await fetch('https://bingo-servidor-djow.onrender.com/borrar-pases');
+                        document.getElementById('lista-jugadores').innerHTML = ''; 
+                        contadorJugadores = 0; 
+                        Swal.fire('Eliminados', 'Todos los jugadores han sido borrados.', 'success');
+                    } catch (error) {
+                        Swal.fire('Error', 'No se pudieron borrar los jugadores.', 'error');
+                    }
                 }
-            }
+            });
         }
 
         function volverAListaJugadores() {
@@ -353,7 +351,6 @@ document.getElementById('input-clave').addEventListener('keypress', function(eve
             document.getElementById('pantalla-accesos').style.display = "block";
         }
 
-       // --- LÓGICA DEL JUEGO BINGO ---
         const tableroAdmin = document.getElementById('tablero-admin');
         const letras = ['B', 'I', 'N', 'G', 'O'];
         let modoEdicion = false;
@@ -364,18 +361,26 @@ document.getElementById('input-clave').addEventListener('keypress', function(eve
             this.classList.toggle('activo');
         };
 
-        document.getElementById('btn-reset').onclick = async function() {
-            if(confirm("¿Seguro que quieres reiniciar la partida? Esto solo limpiará las bolas, los jugadores mantendrán sus cartones.")) {
-                await fetch('https://bingo-servidor-djow.onrender.com/reset');
-                
-                document.querySelectorAll('.btn-bola').forEach(btn => {
-                    btn.classList.remove('sacada');
-                });
-
-                // Limpiar el visor de la bola gigante
-                document.getElementById('titulo-ultima-bola').style.display = "none";
-                document.getElementById('display-tombola').textContent = "";
-            }
+        // --- ACTUALIZADO: REINICIAR PARTIDA CON SWEETALERT ---
+        document.getElementById('btn-reset').onclick = function() {
+            Swal.fire({
+                title: '¿Reiniciar la partida?',
+                text: "Esto limpiará todas las bolas, pero los jugadores conservarán sus cartones.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e67e22',
+                cancelButtonColor: '#7f8c8d',
+                confirmButtonText: 'Sí, reiniciar',
+                cancelButtonText: 'Cancelar'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    await fetch('https://bingo-servidor-djow.onrender.com/reset');
+                    document.querySelectorAll('.btn-bola').forEach(btn => btn.classList.remove('sacada'));
+                    document.getElementById('titulo-ultima-bola').style.display = "none";
+                    document.getElementById('display-tombola').textContent = "";
+                    Swal.fire('¡Reiniciado!', 'El tablero de bolas está listo para una nueva partida.', 'success');
+                }
+            });
         };
 
         for (let i = 0; i < 5; i++) {
@@ -391,16 +396,12 @@ document.getElementById('input-clave').addEventListener('keypress', function(eve
                         if (!boton.classList.contains('sacada')) return; 
                         await fetch(`https://bingo-servidor-djow.onrender.com/deshacer-bola/${bola}`);
                         boton.classList.remove('sacada');
-                        
-                        // Si deshace una bola, limpiamos la pantalla gigante por precaución
                         document.getElementById('titulo-ultima-bola').style.display = "none";
                         document.getElementById('display-tombola').textContent = "";
                     } else {
                         if (boton.classList.contains('sacada')) return;
                         await fetch(`https://bingo-servidor-djow.onrender.com/sacar-bola/${bola}`);
                         boton.classList.add('sacada');
-
-                        // Mostrar número en tamaño gigante abajo
                         document.getElementById('titulo-ultima-bola').style.display = "block";
                         document.getElementById('display-tombola').textContent = bola;
                         document.getElementById('display-tombola').style.transform = "scale(1.3)";
@@ -411,7 +412,6 @@ document.getElementById('input-clave').addEventListener('keypress', function(eve
             }
         }
 
-        // --- NUEVA LÓGICA DE TÓMBOLA AUTOMÁTICA ---
         let tombolaActiva = false;
         const btnToggleTombola = document.getElementById('btn-toggle-tombola');
         const btnGirarTombola = document.getElementById('btn-girar-tombola');
@@ -429,25 +429,22 @@ document.getElementById('input-clave').addEventListener('keypress', function(eve
             }
         };
 
+        // --- ACTUALIZADO: AVISOS DE TÓMBOLA CON SWEETALERT ---
         btnGirarTombola.onclick = function() {
             if (modoEdicion) {
-                alert("Debes apagar el Modo Edición para extraer bolas de forma automática.");
+                Swal.fire('Modo Edición Activo', 'Debes apagar el Modo Edición para extraer bolas de forma automática.', 'info');
                 return;
             }
 
-            // 1. Encontrar todas las bolas que NO han sido sacadas todavía
             const bolasDisponibles = Array.from(document.querySelectorAll('.btn-bola')).filter(btn => !btn.classList.contains('sacada'));
 
             if (bolasDisponibles.length === 0) {
-                alert("¡El tablero está lleno, ya salieron todas las bolas!");
+                Swal.fire('¡Tablero Lleno!', 'Ya han salido todas las bolas posibles.', 'warning');
                 return;
             }
 
-            // 2. Elegir una al azar (como una máquina real)
             const indiceAleatorio = Math.floor(Math.random() * bolasDisponibles.length);
             const botonGanador = bolasDisponibles[indiceAleatorio];
-            
-            // 3. Forzar el "clic" en el botón para que se pinte de azul y envíe el aviso a los jugadores
             botonGanador.click(); 
         };
 

@@ -14,7 +14,12 @@ window.ingresarConCodigo = function() {
     if(codigoIngresado !== "") {
         window.location.href = window.location.pathname + "?token=" + codigoIngresado;
     } else {
-        alert("Por favor, ingresa el código.");
+        Swal.fire({
+            title: '¡Falta el código!',
+            text: 'Por favor, ingresa tu código manual para entrar.',
+            icon: 'warning',
+            confirmButtonColor: '#e74c3c'
+        });
     }
 };
 
@@ -102,7 +107,7 @@ async function pedirCartonAPython() {
                     },
                     (error) => {}
                 ).catch((err) => {
-                    alert("No se pudo iniciar la cámara. Asegúrate de dar permisos.");
+                    Swal.fire('Cámara bloqueada', 'No se pudo iniciar la cámara. Asegúrate de dar permisos en tu navegador.', 'error');
                     btn.style.display = 'block';
                     lector.style.display = 'none';
                 });
@@ -129,7 +134,6 @@ async function pedirCartonAPython() {
         const tablero = document.getElementById('tablero');
         const columnas = ['B', 'I', 'N', 'G', 'O'];
 
-        // --- NUEVO: Recuperar las marcas de la memoria del celular ---
         let marcadasMemoria = JSON.parse(localStorage.getItem(`bingo_marcas_${miToken}`)) || [];
 
         for (let fila = 0; fila < 5; fila++) {
@@ -142,7 +146,6 @@ async function pedirCartonAPython() {
                 if (valor === 'LIBRE') {
                     div.classList.add('libre', 'marcada');
                 } else if (marcadasMemoria.includes(div.dataset.bola)) {
-                    // Si el jugador ya la había marcado antes de recargar, la pintamos de nuevo
                     div.classList.add('marcada');
                 }
                 div.textContent = valor;
@@ -154,7 +157,6 @@ async function pedirCartonAPython() {
                         if (!div.classList.contains('marcada')) { 
                             div.classList.add('marcada');
                             
-                            // Guardar este clic en la memoria del navegador
                             marcadasMemoria.push(div.dataset.bola);
                             localStorage.setItem(`bingo_marcas_${miToken}`, JSON.stringify(marcadasMemoria));
                             
@@ -167,7 +169,13 @@ async function pedirCartonAPython() {
                             }
                         }
                     } else {
-                        alert("¡Ey! Esa bola aún no ha salido.");
+                        Swal.fire({
+                            title: '¡Uy!',
+                            text: 'Esa bola aún no ha salido de la tómbola.',
+                            icon: 'info',
+                            confirmButtonColor: '#3498db',
+                            timer: 2000
+                        });
                     }
                 };
                 tablero.appendChild(div);
@@ -209,7 +217,13 @@ if (miToken) {
         } else if (datos.tipo === "cambio_modo") {
             modoJuegoActual = datos.modo;
             let nombreModo = modoJuegoActual.replace('_', ' ').toUpperCase();
-            alert("⚠️ El administrador cambió el modo de juego a: " + nombreModo);
+            
+            Swal.fire({
+                title: 'Cambio de Reglas',
+                text: 'El administrador cambió el modo de juego a: ' + nombreModo,
+                icon: 'warning',
+                confirmButtonColor: '#f39c12'
+            });
 
         } else if (datos.tipo === "deshacer_bola") {
             bolasValidas = bolasValidas.filter(b => b !== datos.bola); 
@@ -220,7 +234,6 @@ if (miToken) {
             if (casilla && !casilla.classList.contains('libre')) {
                 casilla.classList.remove('marcada');
                 
-                // Si el administrador deshace una bola, se la borramos también de su libreta de memoria
                 let marcadasMemoria = JSON.parse(localStorage.getItem(`bingo_marcas_${miToken}`)) || [];
                 marcadasMemoria = marcadasMemoria.filter(b => b !== datos.bola);
                 localStorage.setItem(`bingo_marcas_${miToken}`, JSON.stringify(marcadasMemoria));
@@ -230,7 +243,6 @@ if (miToken) {
             if(bolitasRestantes.length > 0) bolitasRestantes[bolitasRestantes.length - 1].classList.add('ultima-bola');
             
         } else if (datos.tipo === "expulsar") {
-            // Destruimos la memoria cuando el pase es eliminado
             localStorage.removeItem(`bingo_marcas_${miToken}`);
             socket.close(); 
             document.body.innerHTML = `
@@ -245,22 +257,32 @@ if (miToken) {
             bolasValidas = [];
             bingoCantado = false;
             document.querySelector('.historial').innerHTML = ''; 
-            
-            // Destruimos la memoria cuando el administrador reinicia la partida
             localStorage.removeItem(`bingo_marcas_${miToken}`);
             
             document.querySelectorAll('.casilla').forEach(casilla => {
                 if (!casilla.classList.contains('libre')) casilla.classList.remove('marcada');
             });
             
-            alert("El administrador ha iniciado una nueva partida. ¡Tus cartones han sido limpiados!");
+            Swal.fire({
+                title: 'Nueva Partida',
+                text: 'El administrador ha iniciado un nuevo juego. ¡Tus cartones han sido limpiados!',
+                icon: 'success',
+                confirmButtonColor: '#27ae60'
+            });
             
         } else if (datos.tipo === "bingo") {
             bingoCantado = true;
             sonidoBingo.play();
             lanzarConfeti();
             setTimeout(() => {
-                alert("🎉 ¡BINGO! Alguien ha llenado su cartón. Fin del juego. 🎉");
+                Swal.fire({
+                    title: '🎉 ¡BINGO! 🎉',
+                    text: 'Alguien ha llenado su cartón y ganó el juego.',
+                    icon: 'success',
+                    confirmButtonText: '¡Genial!',
+                    confirmButtonColor: '#8e44ad',
+                    backdrop: `rgba(0,0,123,0.4)`
+                });
             }, 1000);
         }
     };
