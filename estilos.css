@@ -163,3 +163,59 @@ h1 {
     color: #e74c3c;
     text-shadow: 2px 2px 5px rgba(0,0,0,0.2);
 }
+
+
+/* =========================================
+   BLOQUEO Y MODO HORIZONTAL (SOLO ADMIN)
+========================================= */
+#aviso-rotar { display: none; }
+
+/* 1. Si es celular y está en VERTICAL: Bloqueamos y pedimos girar */
+@media (max-width: 768px) and (orientation: portrait) {
+    /* Ocultamos absolutamente todo el panel del administrador */
+    #pantalla-login, #pantalla-menu, #pantalla-admin, #pantalla-accesos, #pantalla-nuevo-pase {
+        display: none !important;
+    }
+    /* Mostramos el aviso a pantalla completa */
+    #aviso-rotar {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background: linear-gradient(135deg, #1c2833 0%, #2980b9 100%);
+        padding: 20px;
+        box-sizing: border-box;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        z-index: 9999;
+        text-align: center;
+    }
+}
+
+/* 2. Si el celular ya se acostó (HORIZONTAL): Ajustamos las 15 columnas */
+@media (max-width: 950px) and (orientation: landscape) {
+    .tablero-admin {
+        grid-template-columns: repeat(15, 1fr) !important; /* Mantiene las 15 columnas */
+        gap: 4px !important;
+        padding: 10px !important;
+    }
+    .btn-bola {
+        padding: 6px 0 !important;
+        font-size: 0.85em !important; /* Bolas ajustadas para que no se desborden */
+    }
+    #display-tombola {
+        font-size: 4em !important;
+        margin: 5px 0 !important;
+    }
+    h1 {
+        font-size: 2em !important;
+        margin-top: 50px !important; /* Baja el título para que no choque con los botones */
+        margin-bottom: 10px !important;
+    }
+    .btn-volver, .btn-cerrar-sesion {
+        top: 10px !important;
+        padding: 8px 15px !important;
+        font-size: 0.8em !important;
+    }
+}
