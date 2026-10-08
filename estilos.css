@@ -109,7 +109,7 @@ h1 {
 }
 
 /* =========================================
-   MODO ADMIN: DISEÑO MODERNO
+   MODO ADMIN: DISEÑO MODERNO (RESTAURADO PARA PC)
 ========================================= */
 #pantalla-login { 
     display: flex; 
@@ -121,7 +121,6 @@ h1 {
     background: linear-gradient(135deg, #1c2833 0%, #2980b9 100%); 
 }
 
-/* AQUÍ CORREGIMOS EL TAMAÑO PARA PC */
 .caja-login { 
     background: #ffffff; 
     padding: 50px 40px; 
@@ -129,7 +128,7 @@ h1 {
     box-shadow: 0 15px 35px rgba(0,0,0,0.3); 
     text-align: center; 
     width: 100%; 
-    max-width: 450px; /* Más grande y adaptable */
+    max-width: 450px;
     box-sizing: border-box;
 }
 
@@ -181,54 +180,4 @@ h1 {
     font-weight: 900;
     color: #e74c3c;
     text-shadow: 2px 2px 5px rgba(0,0,0,0.2);
-}
-
-/* =========================================
-   REGLAS PARA CELULARES (CON CANDADO PARA PC)
-========================================= */
-#aviso-rotar { display: none !important; }
-
-/* 1. CELULAR VERTICAL: Bloquear y pedir rotación (Solo pantallas móviles) */
-@media screen and (max-width: 768px) and (orientation: portrait) {
-    body > * { display: none !important; }
-    body::before {
-        content: "🔄 ¡Gira tu celular!\A \A Para jugar cómodamente,\A pon tu teléfono en modo horizontal.";
-        white-space: pre-wrap;
-        position: fixed;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: linear-gradient(135deg, #1c2833 0%, #2980b9 100%);
-        color: #f1c40f;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-size: 1.5em;
-        font-weight: 900;
-        text-align: center;
-        z-index: 9999;
-        padding: 20px;
-        box-sizing: border-box;
-        line-height: 1.5;
-    }
-}
-
-/* 2. CELULAR HORIZONTAL: Ajustes solo para pantallas móviles horizontales */
-/* max-height: 600px asegura que NUNCA afecte a las computadoras de escritorio */
-@media screen and (max-width: 950px) and (max-height: 600px) and (orientation: landscape) {
-    body { padding: 5px; }
-    h1 { font-size: 1.5em !important; margin: 5px 0 !important; }
-    
-    .caja-login { max-width: 320px; padding: 25px 20px; }
-    
-    .historial { margin: 5px auto !important; min-height: 40px !important; }
-    .bola-historial { width: 35px !important; height: 35px !important; font-size: 0.9em !important; }
-    .bola-historial.ultima-bola { transform: scale(1.1) !important; border-width: 2px !important; }
-    
-    #tablero { padding: 5px !important; gap: 4px !important; margin: 0 auto !important; }
-    #tablero div:nth-child(-n+5) { width: 50px !important; height: 45px !important; font-size: 1.2em !important; }
-    .casilla { width: 50px !important; height: 50px !important; font-size: 1.3em !important; }
-
-    .tablero-admin { grid-template-columns: repeat(15, 1fr) !important; gap: 4px !important; padding: 10px !important; }
-    .btn-bola { padding: 4px 0 !important; font-size: 0.8em !important; }
-    #display-tombola { font-size: 3em !important; margin: 5px 0 !important; }
-    .btn-volver, .btn-cerrar-sesion { top: 5px !important; padding: 5px 10px !important; font-size: 0.7em !important; }
 }
