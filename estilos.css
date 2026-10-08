@@ -219,3 +219,62 @@ h1 {
         font-size: 0.8em !important;
     }
 }
+
+/* =========================================
+   BLOQUEO DE PANTALLA VERTICAL (ADMIN Y JUGADOR)
+========================================= */
+#aviso-rotar { display: none !important; } /* Ocultamos el aviso viejo del admin por si lo dejaste ahí */
+
+/* Si es celular y está en VERTICAL: Bloqueamos y pedimos girar */
+@media (max-width: 768px) and (orientation: portrait) {
+    /* Ocultamos absolutamente todo el contenido de la página */
+    body > * {
+        display: none !important;
+    }
+    /* Dibujamos el aviso directamente sobre el fondo */
+    body::before {
+        content: "🔄 ¡Gira tu celular!\A \A Para jugar cómodamente,\A pon tu teléfono en modo horizontal.";
+        white-space: pre-wrap;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: linear-gradient(135deg, #1c2833 0%, #2980b9 100%);
+        color: #f1c40f;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 1.5em;
+        font-weight: 900;
+        text-align: center;
+        z-index: 9999;
+        padding: 20px;
+        box-sizing: border-box;
+        line-height: 1.5;
+    }
+}
+
+/* =========================================
+   AJUSTES HORIZONTALES (MÓVILES ACOSTADOS)
+========================================= */
+/* Cuando el celular ya se acostó, achicamos un poco las cosas para que quepan sin hacer scroll */
+@media (max-height: 500px) and (orientation: landscape) {
+    body { padding: 5px; }
+    h1 {
+        font-size: 1.5em !important;
+        margin: 5px 0 !important;
+    }
+    
+    /* Achicar un poco el cartón y las bolas del JUGADOR */
+    .historial { margin: 5px auto !important; min-height: 40px !important; }
+    .bola-historial { width: 35px !important; height: 35px !important; font-size: 0.9em !important; }
+    .bola-historial.ultima-bola { transform: scale(1.1) !important; border-width: 2px !important; }
+    
+    #tablero { padding: 5px !important; gap: 4px !important; margin: 0 auto !important; }
+    #tablero div:nth-child(-n+5) { width: 50px !important; height: 45px !important; font-size: 1.2em !important; }
+    .casilla { width: 50px !important; height: 50px !important; font-size: 1.3em !important; }
+
+    /* Achicar un poco el panel del ADMINISTRADOR */
+    .tablero-admin { grid-template-columns: repeat(15, 1fr) !important; gap: 4px !important; padding: 10px !important; }
+    .btn-bola { padding: 4px 0 !important; font-size: 0.8em !important; }
+    #display-tombola { font-size: 3em !important; margin: 5px 0 !important; }
+    .btn-volver, .btn-cerrar-sesion { top: 5px !important; padding: 5px 10px !important; font-size: 0.7em !important; }
+}
